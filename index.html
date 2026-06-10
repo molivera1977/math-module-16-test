@@ -968,8 +968,7 @@ const app = {
     if (this._reviewMode){
       this._readLockDone=true;
       document.getElementById('reading-timer-bar').classList.add('hidden');
-      if(this._reviewAutoRun) setTimeout(()=>this._autoAnswer(),1200);
-      else document.getElementById('submit-btn').disabled=false;
+      setTimeout(()=>this._autoAnswer(),1200);
     } else {
       this._startReadLock();
     }
