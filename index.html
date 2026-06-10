@@ -531,12 +531,13 @@ const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbzv8CWv1yyi8NeH04no
 const LOCAL_KEY           = 'mathModule16Test_v1';
 const LOCAL_COMPLETED_KEY = 'mathModule16Test_completed_v1';
 
-const SESSION_ID = (() => {
+let SESSION_ID = (() => {
   const k = 'm16t_sid';
   let id = localStorage.getItem(k);
   if (!id) { id = 'M16T-' + Math.random().toString(36).slice(2, 9).toUpperCase(); localStorage.setItem(k, id); }
   return id;
 })();
+let _isRetake = false;
 
 /* ══════════════════════════════════════════════════
    ROSTER
@@ -719,18 +720,20 @@ document.addEventListener('visibilitychange', () => {
 function submitMCPartial() {
   const total = app.currentTest ? app.currentTest.length : 25;
   const pct   = total ? Math.round((app.score / total) * 100) : 0;
+  const label = _isRetake ? 'Module 16 Test — Retake' : 'Module 16 Test';
   fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ action:'submit', game:'mod16-test', sessionId:SESSION_ID+'-mc',
-      name:app.studentName, form:'Module 16 Test', score:app.score, total, percent:pct,
+      name:app.studentName, form:label, score:app.score, total, percent:pct,
       status:`In Progress (Q${app.currentIndex+1}/${total})`, done:false,
       elapsed:app.timerSeconds, tabSwitches:tabSwitchCount,
       timestamp:new Date().toLocaleString('en-US',{timeZone:'America/New_York'}) })
   }).catch(()=>{});
 }
 function submitMCToSheet(score, total, pct, letter, elapsed) {
+  const label = _isRetake ? 'Module 16 Test — Retake' : 'Module 16 Test';
   fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ action:'submit', game:'mod16-test', sessionId:SESSION_ID+'-mc',
-      name:app.studentName, form:'Module 16 Test', score, total, percent:pct, letter,
+      name:app.studentName, form:label, score, total, percent:pct, letter,
       status:'Complete', done:true, elapsed, tabSwitches:tabSwitchCount,
       timestamp:new Date().toLocaleString('en-US',{timeZone:'America/New_York'}) })
   }).catch(()=>{});
@@ -847,6 +850,11 @@ const app = {
   requestRetake() {
     this._openPinModal('Allow Retake', 'Enter Teacher PIN to allow this student to retake the test.', () => {
       localStorage.removeItem(LOCAL_COMPLETED_KEY);
+      // Fresh session ID so retake scores as a new row, not overwriting original
+      localStorage.removeItem('m16t_sid');
+      SESSION_ID = 'M16T-' + Math.random().toString(36).slice(2,9).toUpperCase();
+      localStorage.setItem('m16t_sid', SESSION_ID);
+      _isRetake = true;
       document.getElementById('completed-container').classList.add('hidden');
       document.getElementById('pin-section').classList.remove('hidden');
       setTimeout(()=>document.getElementById('student-pin').focus(), 80);
