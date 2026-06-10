@@ -530,6 +530,7 @@ const TEACHER_PIN = '9377';
 const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbzv8CWv1yyi8NeH04now9UxVL4IZm5yMqqsEGMcgGdrcAOWVB-aSp5siTvSSJXIUpzFMA/exec';
 const LOCAL_KEY           = 'mathModule16Test_v1';
 const LOCAL_COMPLETED_KEY = 'mathModule16Test_completed_v1';
+const LOCAL_DRAFT_KEY     = 'mathModule16Test_draft_v1';
 
 let SESSION_ID = (() => {
   const k = 'm16t_sid';
@@ -1130,6 +1131,7 @@ const app = {
     submitMCToSheet(this.score, this.currentTest.length, pct, letter, this.timerSeconds);
     this._show('written-screen');
     this._buildWrittenScreen();
+    this._restoreDraft();
     this._startWrittenTimer();
   },
 
@@ -1140,13 +1142,27 @@ const app = {
     WRITTEN_PROMPTS.forEach(p=>{
       const card=document.createElement('div'); card.className='written-prompt-card';
       const promptHtml=p.prompt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-      card.innerHTML=`<div class="written-prompt-label">${p.id}</div><div class="written-prompt-type">${p.type}</div><div class="written-prompt-text">${promptHtml}</div><div class="written-guidance">💡 ${p.guidance}</div><textarea class="written-textarea" id="textarea-${p.id}" placeholder="Write your response here…" oninput="app._updateWordCount('${p.id}',this)"></textarea><div class="word-count-row">Words: <span class="word-count-val" id="wc-${p.id}">0</span><span style="color:#aaa;font-size:0.8rem;"> / 10 minimum</span></div>`;
+      card.innerHTML=`<div class="written-prompt-label">${p.id}</div><div class="written-prompt-type">${p.type}</div><div class="written-prompt-text">${promptHtml}</div><div class="written-guidance">💡 ${p.guidance}</div><textarea class="written-textarea" id="textarea-${p.id}" placeholder="Write your response here…" oninput="app._updateWordCount('${p.id}',this); app._autosaveDraft()"></textarea><div class="word-count-row">Words: <span class="word-count-val" id="wc-${p.id}">0</span><span style="color:#aaa;font-size:0.8rem;"> / 10 minimum</span></div>`;
       container.appendChild(card);
     });
     document.getElementById('written-success-panel').classList.add('hidden');
     const btn=document.getElementById('submit-written-btn');
     btn.classList.remove('hidden'); btn.disabled=false; btn.textContent='✅ Submit Written Responses';
     document.getElementById('written-submit-error').textContent='';
+  },
+
+  _autosaveDraft() {
+    const draft = {};
+    WRITTEN_PROMPTS.forEach(p => { const ta = document.getElementById(`textarea-${p.id}`); if (ta) draft[p.id] = ta.value; });
+    localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify({ name: this.studentName, draft }));
+  },
+
+  _restoreDraft() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LOCAL_DRAFT_KEY) || 'null');
+      if (!saved || saved.name !== this.studentName) return;
+      WRITTEN_PROMPTS.forEach(p => { const ta = document.getElementById(`textarea-${p.id}`); if (ta && saved.draft[p.id]) { ta.value = saved.draft[p.id]; this._updateWordCount(p.id, ta); } });
+    } catch(e) {}
   },
 
   _updateWordCount(id, textarea) {
@@ -1164,6 +1180,7 @@ const app = {
     document.getElementById('written-submit-error').textContent='';
     const btn=document.getElementById('submit-written-btn'); btn.disabled=true; btn.textContent='⏳ Submitting…';
     this._stopWrittenTimer();
+    localStorage.removeItem(LOCAL_DRAFT_KEY);
     submitWrittenToSheet(responses['W1'], responses['W2'], this.writtenTimerSeconds);
     document.getElementById('written-prompts-container').classList.add('hidden');
     btn.classList.add('hidden');
