@@ -767,6 +767,7 @@ const app = {
 
   /* ── Screen flow ── */
   _show(id) {
+    stopActiveSpeech();
     ['start-screen','readaloud-screen','directions-screen','quiz-screen','written-screen','end-screen'].forEach(sid => {
       document.getElementById(sid).classList.add('hidden');
     });
