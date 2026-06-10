@@ -708,6 +708,17 @@ document.addEventListener('visibilitychange', () => {
 /* ══════════════════════════════════════════════════
    SHEET SUBMISSION
 ══════════════════════════════════════════════════ */
+function submitMCPartial() {
+  const total = app.currentTest ? app.currentTest.length : 25;
+  const pct   = total ? Math.round((app.score / total) * 100) : 0;
+  fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'submit', game:'mod16-test', sessionId:SESSION_ID+'-mc',
+      name:app.studentName, form:'Module 16 Test', score:app.score, total, percent:pct,
+      status:`In Progress (Q${app.currentIndex+1}/${total})`, done:false,
+      elapsed:app.timerSeconds, tabSwitches:tabSwitchCount,
+      timestamp:new Date().toLocaleString('en-US',{timeZone:'America/New_York'}) })
+  }).catch(()=>{});
+}
 function submitMCToSheet(score, total, pct, letter, elapsed) {
   fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ action:'submit', game:'mod16-test', sessionId:SESSION_ID+'-mc',
@@ -1068,8 +1079,11 @@ const app = {
   /* ── Next ── */
   nextQuestion() {
     stopActiveSpeech(); this.currentIndex++;
-    if(this.currentIndex<this.currentTest.length){ this._saveProgress(); this.showQuestion(); }
-    else { this._endMCTest(); }
+    if(this.currentIndex<this.currentTest.length){
+      this._saveProgress();
+      if(this.currentIndex > 0 && this.currentIndex % 5 === 0) submitMCPartial();
+      this.showQuestion();
+    } else { this._endMCTest(); }
   },
 
   /* ── End MC ── */
