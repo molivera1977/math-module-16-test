@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Math Module 16 Test</title>
+  <style>
+    :root {
+      --primary:      #d35400;
+      --primary-dark: #922b21;
+      --card-bg:      #ffffff;
+      --text:         #333;
+    }
+
+    body {
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+      color: var(--text);
+      margin: 0; padding: 0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      min-height: 50vh;
+      position: relative;
+      z-index: 10;
+    }
+
+    h1 { text-align: center; color: var(--primary); letter-spacing: 1px; margin-top: 0; }
+    h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #2c3e50; line-height: 2.5rem; }
+
+    /* ── Fraction rendering ── */
+    .fraction {
+      display: inline-block; vertical-align: middle;
+      text-align: center; margin: 0 3px; font-size: 1em;
+    }
+    .frac-top  { display: block; border-bottom: 2px solid currentColor; padding: 0 2px; line-height: 1.2; }
+    .frac-bottom { display: block; padding: 0 2px; line-height: 1.2; }
+    .mixed-num { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; }
+
+    /* ── Login ── */
+    .login-box {
+      display: flex; flex-direction: column; gap: 16px;
+      max-width: 420px; margin: 0 auto;
+      background: #f8f9fa; padding: 28px 30px;
+      border-radius: 15px; border: 2px solid #e9ecef;
+    }
+    .login-box label {
+      display: block; font-size: 1rem; margin-bottom: 5px;
+      font-weight: bold; color: #555;
+    }
+    .login-select, .login-input {
+      width: 100%; padding: 13px 15px; font-size: 1.1rem;
+      border: 3px solid #ccc; border-radius: 12px;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-sizing: border-box; background: #fff;
+    }
+    .login-select:focus, .login-input:focus { outline: none; border-color: var(--primary); }
+    #pin-section { display: flex; flex-direction: column; gap: 14px; }
+    .login-error {
+      color: #c0392b; font-weight: bold; min-height: 18px;
+      font-size: 0.95rem; text-align: center;
+    }
+    .sign-in-btn {
+      background: var(--primary); color: white; border: none;
+      padding: 14px; border-radius: 12px; font-size: 1.15rem;
+      cursor: pointer; font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 4px 0 var(--primary-dark); transition: transform 0.1s; width: 100%;
+    }
+    .sign-in-btn:hover { transform: translateY(-2px); }
+
+    /* ── Teacher mode ── */
+    #teacher-screen {
+      text-align: center; background: #e2e6ea;
+      padding: 30px; border-radius: 15px; border: 2px dashed #6c757d;
+    }
+    .teacher-btn {
+      background: #28a745; color: white; padding: 20px 35px; border: none;
+      border-radius: 12px; cursor: pointer; font-size: 1.2rem;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 4px 0 #1e7e34; transition: transform 0.1s;
+    }
+    .teacher-btn:hover { transform: translateY(-3px); box-shadow: 0 7px 0 #1e7e34; }
+
+    /* ── Resume ── */
+    #resume-container { margin-bottom: 25px; text-align: center; }
+    .resume-btn {
+      background: #ff851b; color: white; padding: 15px 30px; border: none;
+      border-radius: 15px; cursor: pointer; font-size: 1.2rem;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 5px 0 #cc6a15; transition: transform 0.1s; display: inline-block;
+    }
+    .resume-btn:hover { transform: translateY(-3px); }
+
+    /* ── Part badge ── */
+    .part-badge {
+      display: inline-block; background: var(--primary); color: white;
+      font-size: 0.9rem; font-weight: bold; padding: 5px 14px;
+      border-radius: 20px; margin-bottom: 14px; letter-spacing: 0.5px;
+    }
+
+    /* ── Progress ── */
+    .progress-bar { height: 12px; background: #e9ecef; border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+
+    /* ── Timer ── */
+    .timer-row { text-align: right; font-size: 1.1rem; font-weight: bold; color: #666; margin-bottom: 10px; }
+
+    /* ── Question header ── */
+    .question-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+    .speak-btn {
+      background: none; border: 2px solid #ccc; border-radius: 50%;
+      cursor: pointer; font-size: 1.4rem; padding: 8px 12px; min-width: 48px;
+      flex-shrink: 0; transition: border-color 0.2s;
+    }
+    .speak-btn:hover { border-color: var(--primary); }
+
+    /* ── Answer buttons ── */
+    .options-grid { display: grid; gap: 14px; }
+    button.answer-btn {
+      background: white; color: var(--primary); border: 3px solid #e0e0e0;
+      padding: 15px; border-radius: 15px; font-size: 1.25rem;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      cursor: pointer; text-align: left; width: 100%;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: all 0.2s; box-shadow: 0 4px 0 #e0e0e0;
+      white-space: normal; word-wrap: break-word; min-height: 68px;
+    }
+    button.answer-btn:hover:not(:disabled) {
+      background: #fef0e7; border-color: var(--primary);
+      transform: translateY(-2px); box-shadow: 0 6px 0 #e67e22;
+    }
+    button.answer-btn.selected {
+      background: #fdebd0; border-color: var(--primary);
+      font-weight: bold; box-shadow: 0 4px 0 var(--primary);
+    }
+    button.correct  { background: #d4edda; border-color: #28a745; color: #155724; box-shadow: 0 4px 0 #28a745; }
+    button.incorrect{ background: #f8d7da; border-color: #dc3545; color: #721c24; box-shadow: 0 4px 0 #dc3545; }
+
+    .speak-mini {
+      background: none; border: none; cursor: pointer; font-size: 1.1rem;
+      padding: 4px 8px; flex-shrink: 0;
+    }
+
+    /* ── Feedback ── */
+    .feedback-box {
+      display: none; margin-top: 20px; padding: 20px;
+      border-radius: 12px; font-size: 1.1rem; border: 2px solid transparent;
+    }
+
+    /* ── Controls ── */
+    .controls { margin-top: 28px; text-align: right; display: flex; justify-content: flex-end; gap: 12px; }
+
+    /* ── Action button ── */
+    button.action-btn {
+      background: var(--primary); color: white; border: none;
+      padding: 15px 30px; border-radius: 12px; font-size: 1.2rem;
+      cursor: pointer; font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 4px 0 var(--primary-dark); transition: transform 0.1s;
+    }
+    button.action-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 var(--primary-dark); }
+    button.action-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--primary-dark); }
+    button.action-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* ── Written screen ── */
+    .written-prompt-card {
+      background: #fff8f3; border: 2px solid #f0a070;
+      border-radius: 14px; padding: 22px; margin-bottom: 22px;
+    }
+    .written-prompt-label {
+      font-size: 0.8rem; font-weight: bold; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;
+    }
+    .written-prompt-type { font-size: 1rem; font-weight: bold; color: #555; margin-bottom: 10px; }
+    .written-prompt-text {
+      font-size: 1.05rem; color: #2c3e50; line-height: 1.75;
+      margin-bottom: 10px; background: #fff;
+      border-radius: 8px; padding: 14px 16px;
+      border: 1px solid #e8c4a0;
+    }
+    .written-guidance {
+      font-size: 0.9rem; color: #7f8c8d;
+      font-style: italic; margin-bottom: 12px;
+    }
+    .written-textarea {
+      width: 100%; min-height: 130px; padding: 12px;
+      font-size: 1rem; border: 2px solid #ddd; border-radius: 10px;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-sizing: border-box; resize: vertical; line-height: 1.6;
+    }
+    .written-textarea:focus { outline: none; border-color: var(--primary); }
+    .word-count-row { font-size: 0.85rem; color: #999; text-align: right; margin-top: 5px; }
+    .word-count-val { font-weight: bold; color: var(--primary); }
+
+    .written-timer-row { text-align: right; font-size: 1rem; font-weight: bold; color: #888; margin-bottom: 14px; }
+
+    #written-submit-error {
+      color: #dc3545; font-weight: bold; min-height: 22px;
+      margin: 8px 0 12px; font-size: 0.95rem; text-align: center;
+    }
+
+    #written-success-panel {
+      text-align: center; background: #d4edda;
+      border: 2px solid #28a745; border-radius: 14px;
+      padding: 28px 20px; margin-top: 20px;
+    }
+
+    /* ── Results ── */
+    .results-row {
+      display: flex; justify-content: center;
+      align-items: baseline; gap: 18px; margin: 8px 0;
+    }
+
+    /* ── Confetti ── */
+    #confetti-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 99;
+    }
+
+    .hidden { display: none !important; }
+
+    @media(max-width: 600px) {
+      .container { margin: 10px; padding: 1.5rem; }
+      h1 { font-size: 1.4rem; }
+      button.answer-btn { font-size: 1rem; padding: 12px; }
+      .results-row { flex-direction: column; align-items: center; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="container">
+  <h1>✖️ Math Module 16 Test</h1>
+  <p style="text-align:center;color:#999;margin-top:-12px;margin-bottom:22px;font-size:0.95rem;">
+    Multiplying Fractions &amp; Mixed Numbers
+  </p>
+
+  <!-- ══════════════ START SCREEN ══════════════ -->
+  <div id="start-screen">
+
+    <div id="resume-container" class="hidden">
+      <p style="margin-bottom:10px;font-weight:bold;color:#555;">
+        Welcome back! You have an unfinished test.
+      </p>
+      <button class="resume-btn" onclick="app.resumeTest()">↩️ Resume Test</button>
+      <hr style="margin:22px 0;opacity:0.25;">
+    </div>
+
+    <div id="login-container" class="login-box">
+      <div>
+        <label for="name-select">👤 Select your name:</label>
+        <select id="name-select" class="login-select" onchange="app.onNameSelect()">
+          <option value="">-- Choose your name --</option>
+        </select>
+      </div>
+
+      <div id="pin-section" class="hidden">
+        <div>
+          <label for="student-pin" id="pin-label">🔒 Enter your student number:</label>
+          <input type="password" id="student-pin" class="login-input"
+                 placeholder="Student number…"
+                 onkeydown="if(event.key==='Enter') app.attemptLogin()"
+                 autocomplete="new-password" />
+        </div>
+        <div id="guest-name-section" class="hidden">
+          <label for="guest-display-name">✏️ Enter your first name:</label>
+          <input type="text" id="guest-display-name" class="login-input"
+                 placeholder="e.g. Henry" maxlength="20"
+                 onkeydown="if(event.key==='Enter') app.attemptLogin()" />
+        </div>
+        <button class="sign-in-btn" onclick="app.attemptLogin()">✅ Sign In</button>
+      </div>
+
+      <div class="login-error" id="login-error"></div>
+    </div>
+
+    <div id="teacher-screen" class="hidden">
+      <h3 style="color:#2c3e50;margin-top:0;">👩‍🏫 Teacher Mode</h3>
+      <p style="font-size:1.1rem;">
+        Assigning test for:
+        <span id="teacher-student-name"
+              style="font-weight:bold;color:var(--primary);font-size:1.3rem;"></span>
+      </p>
+      <button class="teacher-btn" onclick="app.startTest()">▶️ Start Module 16 Test</button>
+      <br><br>
+      <button class="action-btn"
+              style="background:#6c757d;box-shadow:0 4px 0 #495057;font-size:1rem;padding:10px 20px;"
+              onclick="app.cancelTeacherMode()">Cancel</button>
+    </div>
+
+  </div><!-- /#start-screen -->
+
+  <!-- ══════════════ QUIZ SCREEN (Part 1) ══════════════ -->
+  <div id="quiz-screen" class="hidden">
+    <span class="part-badge">Part 1 — Multiple Choice</span>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;color:#666;font-size:1rem;font-weight:bold;margin-bottom:6px;">
+      <span id="progress-text">Question 1 of 25</span>
+      <span id="score-text">Score: 0</span>
+    </div>
+    <div class="timer-row">⏱ <span id="timer-display">00:00</span></div>
+
+    <div class="question-header">
+      <button class="speak-btn" id="speak-q-btn"
+              onclick="app.speakQuestion()" title="Read question aloud">🔊</button>
+      <h2 id="question-text"></h2>
+    </div>
+
+    <div id="answers" class="options-grid" role="radiogroup" aria-label="Answer choices"></div>
+    <div id="feedback" class="feedback-box"></div>
+
+    <div class="controls">
+      <button id="submit-btn" class="action-btn"
+              onclick="app.submitAnswer()" disabled>✅ Submit Answer</button>
+      <button id="next-btn" class="action-btn hidden"
+              onclick="app.nextQuestion()">Next ➡️</button>
+    </div>
+  </div><!-- /#quiz-screen -->
+
+  <!-- ══════════════ WRITTEN SCREEN (Part 2) ══════════════ -->
+  <div id="written-screen" class="hidden">
+    <span class="part-badge">Part 2 — Written Response</span>
+
+    <p style="color:#555;font-size:0.97rem;margin:4px 0 18px;line-height:1.7;">
+      Read each question carefully and write your best response using complete sentences.
+    </p>
+
+    <div class="written-timer-row">⏱ <span id="written-timer-display">00:00</span></div>
+
+    <div id="written-prompts-container"></div>
+
+    <div id="written-submit-error"></div>
+    <button id="submit-written-btn" class="action-btn"
+            style="width:100%;font-size:1.15rem;padding:18px;"
+            onclick="app.submitWrittenResponses()">
+      ✅ Submit Written Responses
+    </button>
+
+    <div id="written-success-panel" class="hidden">
+      <div style="font-size:3.5rem;margin-bottom:8px;">🎉</div>
+      <h3 style="color:#155724;margin:0 0 8px;">Written Responses Submitted!</h3>
+      <p style="color:#155724;margin:0 0 20px;font-size:1rem;line-height:1.6;">
+        Great thinking! Your responses have been sent to your teacher.
+      </p>
+      <button class="action-btn"
+              style="background:#28a745;box-shadow:0 4px 0 #1e7e34;"
+              onclick="app.showEndScreen()">See My Results 📊</button>
+    </div>
+  </div><!-- /#written-screen -->
+
+  <!-- ══════════════ END SCREEN ══════════════ -->
+  <div id="end-screen" class="hidden" style="text-align:center;">
+    <h2 style="color:var(--primary);text-align:center;">🎉 Test Complete!</h2>
+    <p id="student-display-name"
+       style="font-size:1.5rem;color:#555;margin-bottom:5px;font-weight:bold;"></p>
+
+    <div class="results-row">
+      <p id="final-percent"
+         style="font-size:4rem;font-weight:bold;color:var(--primary);margin:0;">0%</p>
+      <p id="final-letter-grade"
+         style="font-size:4rem;font-weight:bold;margin:0;"></p>
+    </div>
+
+    <p id="final-score" style="font-size:1.4rem;margin-top:0;color:#666;"></p>
+    <p id="final-msg"   style="font-size:1.4rem;margin-top:18px;font-weight:bold;"></p>
+    <p id="saving-msg"  style="font-size:1rem;margin-top:8px;color:var(--primary);font-style:italic;"></p>
+    <br><br>
+    <button class="action-btn" onclick="app.restart()">🏠 Return to Menu</button>
+  </div><!-- /#end-screen -->
+
+</div><!-- /.container -->
+
+<script>
+/* ══════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════ */
+const TEACHER_CODE = '9377';
+const SHEET_URL    = 'https://script.google.com/macros/s/AKfycbzv8CWv1yyi8NeH04now9UxVL4IZm5yMqqsEGMcgGdrcAOWVB-aSp5siTvSSJXIUpzFMA/exec';
+const LOCAL_KEY    = 'mathModule16Test_v1';
+
+/* ══════════════════════════════════════════════════
+   ROSTER
+══════════════════════════════════════════════════ */
+const ROSTER = [
+  { name: 'Mr. O (Teacher)',           id: '9377'     },
+  { name: 'Aquino-Perez, Steven',      id: '10048814' },
+  { name: 'Camas-Alvarez, Mike',       id: '10060436' },
+  { name: 'Earle, Jeremiah',           id: '10038362' },
+  { name: 'Felix, Chloe',              id: '10065242' },
+  { name: 'Flores Marcos, Cornelio',   id: '10037877' },
+  { name: "Gardner, Zy'iere",          id: '10057389' },
+  { name: 'Giraldo, Layla',            id: '10053382' },
+  { name: 'Lawrence, Lennox',          id: '10045050' },
+  { name: 'Michael, Mulan',            id: '10051762' },
+  { name: 'Millet, Zion',             id: '10053340' },
+  { name: 'Murillo Estrada, Kevin',    id: '10065967' },
+  { name: 'Romaniello, Kaylib',        id: '10041081' },
+  { name: 'Sanango-Quizhpi, Anthony',  id: '10065990' },
+  { name: 'Santos-Bautista, Scarlet',  id: '10062436' },
+  { name: 'Simpson, Jordyn',           id: '10045306' },
+  { name: 'Torres, Aryana',            id: '10053178' },
+  { name: 'Towns, Micah',              id: '10043892' },
+  { name: 'Ulerio-Jimenez, Adrian',    id: '10061117' }
+];
+
+const GUEST_SLOTS = {
+  '937701': 'Guest 1', '937702': 'Guest 2', '937703': 'Guest 3',
+  '937704': 'Guest 4', '937705': 'Guest 5', '937706': 'Guest 6',
+  '937707': 'Guest 7', '937708': 'Guest 8', '937709': 'Guest 9',
+  '937710': 'Guest 10'
+};
+
+(function buildRoster() {
+  const sel = document.getElementById('name-select');
+  ROSTER.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.name; o.textContent = s.name;
+    sel.appendChild(o);
+  });
+  const div = document.createElement('option');
+  div.disabled = true; div.textContent = '── Guest Slots ──';
+  sel.appendChild(div);
+  Object.entries(GUEST_SLOTS).forEach(([code, label]) => {
+    const o = document.createElement('option');
+    o.value = `GUEST:${code}`; o.textContent = `🙋 ${label}`;
+    sel.appendChild(o);
+  });
+})();
+
+const SESSION_ID = (() => {
+  const k = 'm16t_sid';
+  let id = localStorage.getItem(k);
+  if (!id) {
+    id = 'M16T-' + Math.random().toString(36).slice(2, 9).toUpperCase();
+    localStorage.setItem(k, id);
+  }
+  return id;
+})();
+
+/* ══════════════════════════════════════════════════
+   WRITTEN PROMPTS
+══════════════════════════════════════════════════ */
+const WRITTEN_PROMPTS = [
+  {
+    id: 'W1',
+    type: '🔍 Error Analysis',
+    prompt: 'Marcus is solving 5 × 2/3.\n\nHe writes: "5 × 2/3 = 10/15 because I multiply the whole number by both the top number and the bottom number."\n\nIs Marcus correct? Explain the mistake he made and show the correct way to solve the problem.',
+    guidance: 'Use complete sentences. Identify exactly what Marcus did wrong and explain the correct rule for multiplying a fraction by a whole number.'
+  },
+  {
+    id: 'W2',
+    type: '🤔 Two Students, Two Answers',
+    prompt: 'Aisha and Jordan are both solving 4 × 2 1/2.\n\n• Aisha says: "The answer is 10. I multiplied 4 × 2 = 8 and 4 × 1/2 = 2, then added 8 + 2 = 10."\n\n• Jordan says: "The answer is 8 1/2. I multiplied 4 × 2 = 8 and just kept the 1/2."\n\nWho is correct? Explain the mistake the other student made.',
+    guidance: 'State clearly who is right and who is wrong. Then explain exactly where the wrong student made their mistake.'
+  }
+];
+
+/* ══════════════════════════════════════════════════
+   QUESTIONS  (25 total)
+══════════════════════════════════════════════════ */
+const QUESTIONS = [
+
+  /* ── Naked fraction × whole number (4) ── */
+  {
+    q: "Which of these is the product of 5 × 2/5?",
+    choices: ["2/25", "2/10", "10/25", "10/5"],
+    answer: "10/5",
+    explanation: "Multiply the numerator by the whole number: 5 × 2 = 10. Keep the denominator: 10/5."
+  },
+  {
+    q: "Which of these is the product of 3 × 1/8?",
+    choices: ["1/24", "3/8", "8/3", "25/8"],
+    answer: "3/8",
+    explanation: "Multiply 3 × 1 = 3. Keep the denominator: 3/8."
+  },
+  {
+    q: "Which of these is the product of 6 × 3/4?",
+    choices: ["3/24", "18/24", "18/4", "27/4"],
+    answer: "18/4",
+    explanation: "Multiply 6 × 3 = 18. Keep the denominator: 18/4."
+  },
+  {
+    q: "Which of these is the product of 8 × 1/2?",
+    choices: ["1/16", "2/8", "8/2", "17/2"],
+    answer: "8/2",
+    explanation: "Multiply 8 × 1 = 8. Keep the denominator: 8/2."
+  },
+
+  /* ── Naked mixed number × whole number (4) ── */
+  {
+    q: "Find the product: 8 × 2 1/5",
+    choices: ["16 1/5", "17 3/5", "17 4/5", "18"],
+    answer: "17 3/5",
+    explanation: "Convert 2 1/5 to 11/5. Then 8 × 11 = 88. 88/5 = 17 3/5."
+  },
+  {
+    q: "Find the product: 9 × 1 1/4",
+    choices: ["9 1/4", "10 1/4", "11 1/4", "13 1/4"],
+    answer: "11 1/4",
+    explanation: "Convert 1 1/4 to 5/4. Then 9 × 5 = 45. 45/4 = 11 1/4."
+  },
+  {
+    q: "Find the product: 5 × 2 2/3",
+    choices: ["10 2/3", "12 1/3", "13 1/3", "13 2/3"],
+    answer: "13 1/3",
+    explanation: "Convert 2 2/3 to 8/3. Then 5 × 8 = 40. 40/3 = 13 1/3."
+  },
+  {
+    q: "Find the product: 2 × 3 4/10",
+    choices: ["6 4/10", "6 8/10", "7 4/10", "7 8/10"],
+    answer: "6 8/10",
+    explanation: "Convert 3 4/10 to 34/10. Then 2 × 34 = 68. 68/10 = 6 8/10."
+  },
+
+  /* ── Division / groups series A — Pedro soup (3) ── */
+  {
+    q: "Pedro uses 3/5 cup of carrots per batch of soup. On Monday he used 9/5 cups. How many batches did Pedro make on Monday?",
+    choices: ["2 batches", "3 batches", "4 batches", "5 batches"],
+    answer: "3 batches",
+    explanation: "9/5 ÷ 3/5 = 9 ÷ 3 = 3 batches."
+  },
+  {
+    q: "Pedro uses 3/5 cup of carrots per batch of soup. On Tuesday he used 15/5 cups. How many batches did Pedro make on Tuesday?",
+    choices: ["3 batches", "4 batches", "5 batches", "6 batches"],
+    answer: "5 batches",
+    explanation: "15/5 ÷ 3/5 = 15 ÷ 3 = 5 batches."
+  },
+  {
+    q: "Pedro uses 3/5 cup of carrots per batch of soup. On Wednesday he used 30/5 cups. How many batches did Pedro make on Wednesday?",
+    choices: ["8 batches", "9 batches", "10 batches", "12 batches"],
+    answer: "10 batches",
+    explanation: "30/5 ÷ 3/5 = 30 ÷ 3 = 10 batches."
+  },
+
+  /* ── Division / groups series B — Wan glitter (3) ── */
+  {
+    q: "Wan uses 2/3 ounce of glitter per poster. On Wednesday he used 6/3 ounces. How many posters did Wan make on Wednesday?",
+    choices: ["2 posters", "3 posters", "4 posters", "6 posters"],
+    answer: "3 posters",
+    explanation: "6/3 ÷ 2/3 = 6 ÷ 2 = 3 posters."
+  },
+  {
+    q: "Wan uses 2/3 ounce of glitter per poster. On Thursday he used 12/3 ounces. How many posters did Wan make on Thursday?",
+    choices: ["4 posters", "6 posters", "8 posters", "9 posters"],
+    answer: "6 posters",
+    explanation: "12/3 ÷ 2/3 = 12 ÷ 2 = 6 posters."
+  },
+  {
+    q: "Wan uses 2/3 ounce of glitter per poster. On Saturday he used 18/3 ounces. How many posters did Wan make on Saturday?",
+    choices: ["6 posters", "7 posters", "9 posters", "12 posters"],
+    answer: "9 posters",
+    explanation: "18/3 ÷ 2/3 = 18 ÷ 2 = 9 posters."
+  },
+
+  /* ── Word problems: fraction × whole (6) ── */
+  {
+    q: "Aidan spent 1/2 hour each day practicing basketball. He practiced 5 days this week. How many hours did Aidan practice this week?",
+    choices: ["2/5 hour", "5/10 hour", "5/2 hours", "11/2 hours"],
+    answer: "5/2 hours",
+    explanation: "5 × 1/2: multiply 5 × 1 = 5. Keep the denominator: 5/2 hours."
+  },
+  {
+    q: "Stefanie has 6 strands of yarn. She colors 1/2 foot of each strand yellow. How many feet of yarn does Stefanie color yellow?",
+    choices: ["6/2 feet", "6/12 foot", "2/6 foot", "1/12 foot"],
+    answer: "6/2 feet",
+    explanation: "6 × 1/2: multiply 6 × 1 = 6. Keep the denominator: 6/2 feet."
+  },
+  {
+    q: "Miguel walked 1/5 mile each day he walked his dog. He walked his dog 6 days this week. How many miles did Miguel walk his dog this week?",
+    choices: ["6/5 miles", "5/6 mile", "6/30 mile", "1/30 mile"],
+    answer: "6/5 miles",
+    explanation: "6 × 1/5: multiply 6 × 1 = 6. Keep the denominator: 6/5 miles."
+  },
+  {
+    q: "Henry paints boards that are each 2/3 yard long. How many yards of board does Henry paint after he paints 4 boards?",
+    choices: ["2/12 yard", "8/12 yard", "3/8 yard", "8/3 yards"],
+    answer: "8/3 yards",
+    explanation: "4 × 2/3: multiply 4 × 2 = 8. Keep the denominator: 8/3 yards."
+  },
+  {
+    q: "Greg reads 2/3 hour each day. How many hours does Greg read after 6 days?",
+    choices: ["2/3 hour", "2 hours", "4 hours", "12 hours"],
+    answer: "4 hours",
+    explanation: "6 × 2/3: 6 × 2 = 12. 12/3 = 4 hours."
+  },
+  {
+    q: "Sarah plays piano 3/5 hour each day. How many hours does Sarah play piano after 3 days?",
+    choices: ["3/5 hour", "6/5 hours", "9/5 hours", "15/5 hours"],
+    answer: "9/5 hours",
+    explanation: "3 × 3/5: 3 × 3 = 9. Keep the denominator: 9/5 hours."
+  },
+
+  /* ── Word problems: mixed number × whole (4) ── */
+  {
+    q: "Carmen has 4 pencils that are each 7 1/2 inches long. How long, in inches, are all of Carmen's pencils?",
+    choices: ["28 inches", "29 inches", "30 inches", "31 inches"],
+    answer: "30 inches",
+    explanation: "4 × 7 1/2: convert to 15/2. 4 × 15 = 60. 60/2 = 30 inches."
+  },
+  {
+    q: "Lynn has 8 baseballs that are each 5 1/4 ounces. What is the weight, in ounces, of Lynn's baseballs?",
+    choices: ["40 ounces", "40 2/4 ounces", "41 ounces", "42 ounces"],
+    answer: "42 ounces",
+    explanation: "8 × 5 1/4: convert to 21/4. 8 × 21 = 168. 168/4 = 42 ounces."
+  },
+  {
+    q: "Tricia rakes leaves on 3 different days. Each day she rakes for 1 1/3 hours. How many hours does Tricia rake leaves over the 3 days?",
+    choices: ["3 hours", "3 1/3 hours", "4 hours", "4 1/3 hours"],
+    answer: "4 hours",
+    explanation: "3 × 1 1/3: convert to 4/3. 3 × 4 = 12. 12/3 = 4 hours."
+  },
+  {
+    q: "Fredrick collects 3 rocks for his rock collection. Each rock weighs 1 1/8 pounds. How many pounds of rocks does Fredrick collect?",
+    choices: ["3 pounds", "3 1/8 pounds", "3 3/8 pounds", "4 1/8 pounds"],
+    answer: "3 3/8 pounds",
+    explanation: "3 × 1 1/8: convert to 9/8. 3 × 9 = 27. 27/8 = 3 3/8 pounds."
+  },
+
+  /* ── Multi-step (1) ── */
+  {
+    q: "Steve brushes his dog 6 days each week for 3 weeks. Each session is 1/4 hour. How many total hours does Steve spend brushing his dog after 3 weeks?",
+    choices: ["1 2/4 hours", "3 hours", "4 2/4 hours", "18 hours"],
+    answer: "4 2/4 hours",
+    explanation: "6 days × 3 weeks = 18 days total. 18 × 1/4 = 18/4 = 4 2/4 hours."
+  }
+
+];
+
+/* ══════════════════════════════════════════════════
+   MATH FORMATTERS
+══════════════════════════════════════════════════ */
+function frac(n, d) {
+  return `<span class="fraction"><span class="frac-top">${n}</span><span class="frac-bottom">${d}</span></span>`;
+}
+function mixed(w, n, d) {
+  return `<span class="mixed-num">${w}${frac(n, d)}</span>`;
+}
+function formatMathText(raw) {
+  if (!raw) return '';
+  let s = raw;
+  s = s.replace(/(\d+)\s+(\d+)\/(\d+)/g, (_, w, n, d) => mixed(w, n, d));
+  s = s.replace(/(\d+)\/(\d+)/g,          (_, n, d)    => frac(n, d));
+  s = s.replace(/\bx\b/g, '×');
+  return s;
+}
+
+const ORDINALS = {
+  '2':'halves','3':'thirds','4':'fourths','5':'fifths','6':'sixths',
+  '7':'sevenths','8':'eighths','9':'ninths','10':'tenths','12':'twelfths'
+};
+const NUM_WORDS = [
+  'zero','one','two','three','four','five','six','seven','eight','nine',
+  'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen',
+  'seventeen','eighteen','nineteen','twenty'
+];
+function denomToWord(d)  { return ORDINALS[d] || `over ${d}`; }
+function numToWord(n)    { return NUM_WORDS[parseInt(n)] !== undefined ? NUM_WORDS[parseInt(n)] : n; }
+function toSpoken(raw) {
+  return raw
+    .replace(/(\d+)\s+(\d+)\/(\d+)/g, (_, w, n, d) => `${w} and ${numToWord(n)} ${denomToWord(d)}`)
+    .replace(/(\d+)\/(\d+)/g,          (_, n, d)    => `${numToWord(n)} ${denomToWord(d)}`)
+    .replace(/×/g, ' times ').replace(/\bx\b/g, ' times ');
+}
+
+/* ══════════════════════════════════════════════════
+   LETTER GRADE
+══════════════════════════════════════════════════ */
+function calcLetter(pct) {
+  if (pct >= 97) return 'A+';
+  if (pct >= 93) return 'A';
+  if (pct >= 90) return 'A-';
+  if (pct >= 87) return 'B+';
+  if (pct >= 83) return 'B';
+  if (pct >= 80) return 'B-';
+  if (pct >= 77) return 'C+';
+  if (pct >= 73) return 'C';
+  if (pct >= 70) return 'C-';
+  if (pct >= 67) return 'D+';
+  if (pct >= 63) return 'D';
+  if (pct >= 60) return 'D-';
+  return 'F';
+}
+
+/* ══════════════════════════════════════════════════
+   READ-ALOUD TOGGLE
+══════════════════════════════════════════════════ */
+let activeSpeakBtn = null;
+
+function stopActiveSpeech() {
+  window.speechSynthesis.cancel();
+  if (activeSpeakBtn) { activeSpeakBtn.textContent = '🔊'; activeSpeakBtn = null; }
+}
+
+function speakToggle(btn, text) {
+  if (activeSpeakBtn === btn) { stopActiveSpeech(); return; }
+  stopActiveSpeech();
+  activeSpeakBtn = btn;
+  btn.textContent = '⏹';
+  const u = new SpeechSynthesisUtterance(toSpoken(text));
+  u.lang = 'en-US'; u.rate = 0.9;
+  u.onend = () => {
+    if (activeSpeakBtn === btn) { btn.textContent = '🔊'; activeSpeakBtn = null; }
+  };
+  window.speechSynthesis.speak(u);
+}
+
+/* ══════════════════════════════════════════════════
+   SHEET SUBMISSION
+══════════════════════════════════════════════════ */
+function submitMCToSheet(score, total, pct, letter, elapsed) {
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action:    'submit',
+      game:      'mod16-test',
+      sessionId: SESSION_ID + '-mc',
+      name:      app.studentName,
+      form:      'Module 16 Test',
+      score, total, percent: pct, letter,
+      status:    'Complete',
+      done:      true,
+      elapsed,
+      timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+    })
+  }).catch(() => {});
+}
+
+function submitWrittenToSheet(w1, w2, elapsed) {
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action:    'written',
+      game:      'mod16-test-written',
+      sessionId: SESSION_ID + '-written',
+      name:      app.studentName,
+      w1, w2,
+      elapsed,
+      timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+    })
+  }).catch(() => {});
+}
+
+/* ══════════════════════════════════════════════════
+   APP
+══════════════════════════════════════════════════ */
+const app = {
+  currentTest:  [],
+  currentIndex: 0,
+  score:        0,
+  selectedAnswer: null,
+  studentName:  '',
+  timerSeconds: 0,
+  timerInterval: null,
+  writtenTimerSeconds: 0,
+  writtenTimerInterval: null,
+  _mcResult: null,
+
+  /* ── Init ── */
+  init() { this.checkSavedProgress(); },
+
+  checkSavedProgress() {
+    const saved = localStorage.getItem(LOCAL_KEY);
+    document.getElementById('resume-container').classList.toggle('hidden', !saved);
+  },
+
+  /* ── Resume ── */
+  resumeTest() {
+    const saved = localStorage.getItem(LOCAL_KEY);
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    this.currentTest   = data.currentTest;
+    this.currentIndex  = data.currentIndex;
+    this.score         = data.score;
+    this.studentName   = data.studentName || 'Student';
+    this.timerSeconds  = data.timerSeconds || 0;
+    this._show('quiz-screen');
+    this._startTimer();
+    this.showQuestion();
+    stopConfetti();
+  },
+
+  /* ── Dropdown change ── */
+  onNameSelect() {
+    const val      = document.getElementById('name-select').value;
+    const pinSec   = document.getElementById('pin-section');
+    const guestSec = document.getElementById('guest-name-section');
+    document.getElementById('login-error').textContent = '';
+    if (!val) { pinSec.classList.add('hidden'); return; }
+    pinSec.classList.remove('hidden');
+    if (val.startsWith('GUEST:')) {
+      guestSec.classList.remove('hidden');
+      document.getElementById('pin-label').textContent = '🔒 Enter guest code:';
+    } else {
+      guestSec.classList.add('hidden');
+      document.getElementById('pin-label').textContent = '🔒 Enter your student number:';
+    }
+    setTimeout(() => document.getElementById('student-pin').focus(), 80);
+  },
+
+  /* ── Sign in ── */
+  attemptLogin() {
+    const selVal = document.getElementById('name-select').value;
+    const pin    = document.getElementById('student-pin').value.trim();
+    const errEl  = document.getElementById('login-error');
+    errEl.textContent = '';
+
+    if (!selVal) { errEl.textContent = '⚠️ Please select your name.'; return; }
+    if (!pin)    { errEl.textContent = '⚠️ Please enter your student number.'; return; }
+
+    let matched = false, displayName = '';
+
+    if (selVal.startsWith('GUEST:')) {
+      const code = selVal.replace('GUEST:', '');
+      if (pin === code) {
+        const firstName = (document.getElementById('guest-display-name').value || '').trim();
+        if (!firstName) { errEl.textContent = '⚠️ Please enter your first name.'; return; }
+        matched = true;
+        displayName = firstName + ' (Guest)';
+      } else {
+        errEl.textContent = '❌ Incorrect guest code. Try again.'; return;
+      }
+    } else {
+      const student = ROSTER.find(s => s.name === selVal);
+      if (student && student.id === pin) {
+        matched = true; displayName = selVal;
+      } else {
+        errEl.textContent = '❌ Incorrect student number. Try again.'; return;
+      }
+    }
+
+    if (matched) {
+      this.studentName = displayName;
+      document.getElementById('student-pin').value = '';
+      errEl.textContent = '';
+
+      if (displayName === 'Mr. O (Teacher)') {
+        document.getElementById('teacher-student-name').innerText = displayName;
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('teacher-screen').classList.remove('hidden');
+      } else {
+        this.startTest();
+      }
+    }
+  },
+
+  cancelTeacherMode() {
+    document.getElementById('teacher-screen').classList.add('hidden');
+    document.getElementById('login-container').classList.remove('hidden');
+    document.getElementById('name-select').value = '';
+    document.getElementById('pin-section').classList.add('hidden');
+  },
+
+  /* ── Start test ── */
+  startTest() {
+    localStorage.removeItem(LOCAL_KEY);
+    this.currentTest = JSON.parse(JSON.stringify(QUESTIONS));
+    this.currentTest.sort(() => Math.random() - 0.5);
+    this.currentTest.forEach(q => q.choices.sort(() => Math.random() - 0.5));
+    this.currentIndex = 0;
+    this.score        = 0;
+    this.timerSeconds = 0;
+    this._saveProgress();
+    this._show('quiz-screen');
+    this._startTimer();
+    this.showQuestion();
+    stopConfetti();
+  },
+
+  /* ── Persist ── */
+  _saveProgress() {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({
+      currentTest:  this.currentTest,
+      currentIndex: this.currentIndex,
+      score:        this.score,
+      studentName:  this.studentName,
+      timerSeconds: this.timerSeconds
+    }));
+  },
+
+  /* ── MC timer ── */
+  _startTimer() {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    this._tickTimer();
+    this.timerInterval = setInterval(() => { this.timerSeconds++; this._tickTimer(); }, 1000);
+  },
+  _stopTimer() {
+    if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+  },
+  _tickTimer() {
+    const m = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+    const s = String(this.timerSeconds % 60).padStart(2, '0');
+    const el = document.getElementById('timer-display');
+    if (el) el.textContent = `${m}:${s}`;
+  },
+
+  /* ── Written timer ── */
+  _startWrittenTimer() {
+    if (this.writtenTimerInterval) clearInterval(this.writtenTimerInterval);
+    this.writtenTimerSeconds = 0;
+    this._tickWrittenTimer();
+    this.writtenTimerInterval = setInterval(() => { this.writtenTimerSeconds++; this._tickWrittenTimer(); }, 1000);
+  },
+  _stopWrittenTimer() {
+    if (this.writtenTimerInterval) { clearInterval(this.writtenTimerInterval); this.writtenTimerInterval = null; }
+  },
+  _tickWrittenTimer() {
+    const m = String(Math.floor(this.writtenTimerSeconds / 60)).padStart(2, '0');
+    const s = String(this.writtenTimerSeconds % 60).padStart(2, '0');
+    const el = document.getElementById('written-timer-display');
+    if (el) el.textContent = `${m}:${s}`;
+  },
+
+  /* ── Show question ── */
+  showQuestion() {
+    stopActiveSpeech();
+    this.selectedAnswer = null;
+    const qObj  = this.currentTest[this.currentIndex];
+    const total = this.currentTest.length;
+
+    document.getElementById('progress-text').innerText = `Question ${this.currentIndex + 1} of ${total}`;
+    document.getElementById('score-text').innerText    = `Score: ${this.score}`;
+    document.getElementById('progress-fill').style.width = `${(this.currentIndex / total) * 100}%`;
+    document.getElementById('question-text').innerHTML = formatMathText(qObj.q);
+
+    const fb = document.getElementById('feedback');
+    fb.style.display = 'none'; fb.innerHTML = '';
+
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').classList.remove('hidden');
+    document.getElementById('next-btn').classList.add('hidden');
+
+    const answersDiv = document.getElementById('answers');
+    answersDiv.innerHTML = '';
+
+    qObj.choices.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+
+      const textSpan = document.createElement('span');
+      textSpan.innerHTML = formatMathText(opt);
+      textSpan.style.flex = '1';
+
+      const speakBtn = document.createElement('button');
+      speakBtn.className = 'speak-mini';
+      speakBtn.textContent = '🔊';
+      speakBtn.setAttribute('aria-label', 'Read choice aloud');
+      speakBtn.onclick = e => { e.stopPropagation(); speakToggle(speakBtn, opt); };
+
+      btn.appendChild(textSpan);
+      btn.appendChild(speakBtn);
+      btn.onclick = e => {
+        if (e.target === speakBtn || e.target.closest('.speak-mini') === speakBtn) return;
+        this.selectAnswer(opt, btn);
+      };
+      answersDiv.appendChild(btn);
+    });
+  },
+
+  /* ── Select ── */
+  selectAnswer(answer, btn) {
+    this.selectedAnswer = answer;
+    document.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('submit-btn').disabled = false;
+  },
+
+  /* ── Submit ── */
+  submitAnswer() {
+    stopActiveSpeech();
+    const qObj = this.currentTest[this.currentIndex];
+    const btns = document.querySelectorAll('.answer-btn');
+    const fb   = document.getElementById('feedback');
+
+    btns.forEach(b => b.disabled = true);
+    document.getElementById('submit-btn').classList.add('hidden');
+    document.getElementById('next-btn').classList.remove('hidden');
+    document.getElementById('next-btn').focus();
+
+    const isCorrect = this.selectedAnswer === qObj.answer;
+    if (isCorrect) {
+      this.score++;
+      fb.style.cssText = 'display:block;background:#d4edda;color:#155724;border:2px solid #c3e6cb;margin-top:20px;padding:20px;border-radius:12px;font-size:1.1rem;';
+      fb.innerHTML = `<strong>✅ Correct!</strong><br>${formatMathText(qObj.explanation)}`;
+      Array.from(btns).find(b => b.classList.contains('selected')).classList.add('correct');
+    } else {
+      fb.style.cssText = 'display:block;background:#f8d7da;color:#721c24;border:2px solid #f5c6cb;margin-top:20px;padding:20px;border-radius:12px;font-size:1.1rem;';
+      fb.innerHTML = `<strong>❌ Not quite.</strong><br>Correct answer: <strong>${formatMathText(qObj.answer)}</strong><br>${formatMathText(qObj.explanation)}`;
+      Array.from(btns).find(b => b.classList.contains('selected')).classList.add('incorrect');
+    }
+
+    this._saveProgress();
+  },
+
+  /* ── Next ── */
+  nextQuestion() {
+    stopActiveSpeech();
+    this.currentIndex++;
+    if (this.currentIndex < this.currentTest.length) {
+      this._saveProgress();
+      this.showQuestion();
+    } else {
+      this._endMCTest();
+    }
+  },
+
+  /* ── End MC → go to Part 2 ── */
+  _endMCTest() {
+    this._stopTimer();
+    localStorage.removeItem(LOCAL_KEY);
+    this.checkSavedProgress();
+
+    const pct    = Math.round((this.score / this.currentTest.length) * 100);
+    const letter = calcLetter(pct);
+    this._mcResult = { score: this.score, total: this.currentTest.length, pct, letter };
+
+    submitMCToSheet(this.score, this.currentTest.length, pct, letter, this.timerSeconds);
+
+    this._show('written-screen');
+    this._buildWrittenScreen();
+    this._startWrittenTimer();
+  },
+
+  /* ── Build written screen ── */
+  _buildWrittenScreen() {
+    const container = document.getElementById('written-prompts-container');
+    container.innerHTML = '';
+    container.classList.remove('hidden');
+
+    WRITTEN_PROMPTS.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'written-prompt-card';
+      const promptHtml = p.prompt
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+      card.innerHTML = `
+        <div class="written-prompt-label">${p.id}</div>
+        <div class="written-prompt-type">${p.type}</div>
+        <div class="written-prompt-text">${promptHtml}</div>
+        <div class="written-guidance">💡 ${p.guidance}</div>
+        <textarea class="written-textarea" id="textarea-${p.id}"
+                  placeholder="Write your response here…"
+                  oninput="app._updateWordCount('${p.id}', this)"></textarea>
+        <div class="word-count-row">
+          Words: <span class="word-count-val" id="wc-${p.id}">0</span>
+          <span id="wc-min-${p.id}" style="color:#aaa;font-size:0.8rem;"> / 10 minimum</span>
+        </div>`;
+      container.appendChild(card);
+    });
+
+    document.getElementById('written-success-panel').classList.add('hidden');
+    const btn = document.getElementById('submit-written-btn');
+    btn.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = '✅ Submit Written Responses';
+    document.getElementById('written-submit-error').textContent = '';
+  },
+
+  _updateWordCount(id, textarea) {
+    const words = textarea.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const el = document.getElementById(`wc-${id}`);
+    if (el) {
+      el.textContent = words;
+      el.style.color = words >= 10 ? '#27ae60' : 'var(--primary)';
+    }
+  },
+
+  /* ── Submit written ── */
+  submitWrittenResponses() {
+    const responses = {};
+    for (const p of WRITTEN_PROMPTS) {
+      const ta = document.getElementById(`textarea-${p.id}`);
+      responses[p.id] = ta ? ta.value.trim() : '';
+    }
+
+    const errors = [];
+    for (const p of WRITTEN_PROMPTS) {
+      const count = responses[p.id].split(/\s+/).filter(w => w.length > 0).length;
+      if (count < 10) errors.push(`${p.id} needs at least 10 words (you have ${count}).`);
+    }
+    if (errors.length) {
+      document.getElementById('written-submit-error').textContent = '⚠️ ' + errors.join('  ');
+      return;
+    }
+
+    document.getElementById('written-submit-error').textContent = '';
+    const btn = document.getElementById('submit-written-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Submitting…';
+
+    this._stopWrittenTimer();
+    submitWrittenToSheet(responses['W1'], responses['W2'], this.writtenTimerSeconds);
+
+    document.getElementById('written-prompts-container').classList.add('hidden');
+    btn.classList.add('hidden');
+    document.getElementById('written-success-panel').classList.remove('hidden');
+  },
+
+  /* ── End screen ── */
+  showEndScreen() {
+    const { score, total, pct, letter } = this._mcResult;
+    this._show('end-screen');
+
+    let color = '#dc3545';
+    if (pct >= 90) color = '#28a745';
+    else if (pct >= 80) color = '#0074d9';
+    else if (pct >= 70) color = '#fd7e14';
+    else if (pct >= 60) color = '#ffc107';
+
+    document.getElementById('student-display-name').innerText = `Name: ${this.studentName}`;
+    document.getElementById('final-percent').innerText = `${pct}%`;
+    const letterEl = document.getElementById('final-letter-grade');
+    letterEl.innerText = letter;
+    letterEl.style.color = color;
+    document.getElementById('final-score').innerText = `(${score} out of ${total})`;
+
+    let msg = '';
+    if (pct === 100) msg = '🌟 Perfect Score! Amazing work!';
+    else if (pct >= 80) msg = '👍 Great job! You are ready.';
+    else if (pct >= 60) msg = '👌 Good effort. Keep practicing!';
+    else msg = "💡 Don't give up — review and try again!";
+    document.getElementById('final-msg').innerText = msg;
+    document.getElementById('saving-msg').innerText = '✅ Results sent to your teacher.';
+
+    if (pct >= 70) startConfetti();
+  },
+
+  /* ── Restart ── */
+  restart() {
+    stopConfetti();
+    stopActiveSpeech();
+    this._show('start-screen');
+    document.getElementById('login-container').classList.remove('hidden');
+    document.getElementById('teacher-screen').classList.add('hidden');
+    document.getElementById('name-select').value = '';
+    document.getElementById('student-pin').value = '';
+    document.getElementById('pin-section').classList.add('hidden');
+    document.getElementById('guest-name-section').classList.add('hidden');
+    document.getElementById('login-error').textContent = '';
+    this.checkSavedProgress();
+  },
+
+  /* ── Speak question ── */
+  speakQuestion() {
+    const btn  = document.getElementById('speak-q-btn');
+    const text = this.currentTest[this.currentIndex].q;
+    speakToggle(btn, text);
+  },
+
+  /* ── Screen helper ── */
+  _show(id) {
+    ['start-screen','quiz-screen','written-screen','end-screen'].forEach(sid => {
+      document.getElementById(sid).classList.add('hidden');
+    });
+    document.getElementById(id).classList.remove('hidden');
+  }
+};
+
+app.init();
+
+/* ══════════════════════════════════════════════════
+   CONFETTI
+══════════════════════════════════════════════════ */
+const canvas  = document.getElementById('confetti-canvas');
+const ctx     = canvas.getContext('2d');
+let particles = [], animId = null;
+
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+function startConfetti() {
+  particles = [];
+  const colors = ['#d35400','#e67e22','#f39c12','#2ecc71','#3498db','#e74c3c'];
+  for (let i = 0; i < 160; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      c: colors[Math.floor(Math.random() * colors.length)],
+      s: Math.random() * 5 + 3,
+      d: Math.random() * 5 + 2
+    });
+  }
+  animate();
+}
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    ctx.fillStyle = p.c;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2); ctx.fill();
+    p.y += p.d;
+    if (p.y > canvas.height) p.y = -10;
+  });
+  animId = requestAnimationFrame(animate);
+}
+function stopConfetti() {
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+</script>
+</body>
+</html>
