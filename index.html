@@ -1151,10 +1151,25 @@ const app = {
     document.getElementById('written-submit-error').textContent='';
   },
 
+  _autosaveDraftTimer: null,
+
   _autosaveDraft() {
     const draft = {};
     WRITTEN_PROMPTS.forEach(p => { const ta = document.getElementById(`textarea-${p.id}`); if (ta) draft[p.id] = ta.value; });
     localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify({ name: this.studentName, draft }));
+    clearTimeout(this._autosaveDraftTimer);
+    this._autosaveDraftTimer = setTimeout(() => this._saveDraftToServer(draft), 3000);
+  },
+
+  _saveDraftToServer(draft) {
+    fetch(SHEET_URL, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'draft', game: 'mod16-test-written',
+        name: this.studentName, sessionId: SESSION_ID + '-written',
+        w1: draft['W1'] || '', w2: draft['W2'] || ''
+      })
+    }).catch(() => {});
   },
 
   _restoreDraft() {
