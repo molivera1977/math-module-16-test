@@ -767,7 +767,7 @@ const app = {
     const btn=document.getElementById('readaloud-btn'), fill=document.getElementById('readaloud-fill'), count=document.getElementById('readaloud-count');
     btn.disabled=true; btn.textContent='⏳ Please wait…';
     fill.style.transition='none'; fill.style.width='100%';
-    setTimeout(()=>{ fill.style.transition='width 1s linear'; fill.style.width='0%'; }, 50);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.transition='width 6s linear'; fill.style.width='0%'; }));
     let secs=6; count.textContent=secs;
     const t=setInterval(()=>{ secs--; count.textContent=Math.max(secs,0); if(secs<=0){ clearInterval(t); btn.disabled=false; btn.textContent='✅ Got It — Show Me the Directions'; } },1000);
   },
@@ -777,7 +777,7 @@ const app = {
     const btn=document.getElementById('ready-btn'), fill=document.getElementById('instruct-fill'), count=document.getElementById('instruct-count');
     btn.disabled=true; btn.textContent='⏳ Read the directions above first…';
     fill.style.transition='none'; fill.style.width='100%';
-    setTimeout(()=>{ fill.style.transition='width 0.25s linear'; fill.style.width='0%'; }, 50);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.transition='width 20s linear'; fill.style.width='0%'; }));
     let secs=20; count.textContent=secs;
     const t=setInterval(()=>{ secs--; count.textContent=Math.max(secs,0); if(secs<=0){ clearInterval(t); btn.disabled=false; btn.textContent='✅ I\'m Ready — Sign In'; } },1000);
   },
@@ -980,7 +980,7 @@ const app = {
     const bar=document.getElementById('reading-timer-bar'), fill=document.getElementById('reading-fill'), count=document.getElementById('reading-count');
     bar.classList.remove('hidden');
     fill.style.transition='none'; fill.style.width='100%';
-    setTimeout(()=>{ fill.style.transition='width 8s linear'; fill.style.width='0%'; },50);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.transition='width 8s linear'; fill.style.width='0%'; }));
     let secs=8; count.textContent=secs;
     this._readTimer=setInterval(()=>{ secs--; count.textContent=Math.max(secs,0); if(secs<=0){ this._clearReadTimer(); bar.classList.add('hidden'); this._readLockDone=true; if(this.selectedAnswer!==null) document.getElementById('submit-btn').disabled=false; } },1000);
   },
@@ -1025,7 +1025,7 @@ const app = {
     next.classList.remove('hidden'); next.disabled=true;
     bar.classList.remove('hidden');
     fill.style.transition='none'; fill.style.width='100%';
-    setTimeout(()=>{ fill.style.transition='width 3s linear'; fill.style.width='0%'; },50);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.transition='width 3s linear'; fill.style.width='0%'; }));
     let secs=3; count.textContent=secs;
     this._soakTimer=setInterval(()=>{ secs--; count.textContent=Math.max(secs,0); if(secs<=0){ this._clearSoakTimer(); bar.classList.add('hidden'); next.disabled=false; next.focus(); } },1000);
   },
@@ -1123,7 +1123,7 @@ const app = {
   _startEndLock() {
     const bar=document.getElementById('end-lock-bar'), fill=document.getElementById('end-lock-fill'), count=document.getElementById('end-lock-count'), btn=document.getElementById('return-btn');
     bar.style.display='flex'; fill.style.transition='none'; fill.style.width='100%';
-    setTimeout(()=>{ fill.style.transition='width 1s linear'; fill.style.width='0%'; },50);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.transition='width 60s linear'; fill.style.width='0%'; }));
     let secs=60; count.textContent=secs;
     const t=setInterval(()=>{ secs--; count.textContent=Math.max(secs,0); if(secs<=0){ clearInterval(t); bar.style.display='none'; btn.disabled=false; } },1000);
   },
