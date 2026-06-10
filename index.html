@@ -747,12 +747,22 @@ const app = {
   _reviewAutoRun: false,
   _pinModalCallback: null,
 
-  init() { this.checkSavedProgress(); },
+  init() {},
 
   checkSavedProgress() {
     const saved = localStorage.getItem(LOCAL_KEY);
     const rc = document.getElementById('resume-container');
-    if (rc) rc.classList.toggle('hidden', !saved);
+    if (!rc) return;
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (this.studentName && data.studentName === this.studentName) {
+        rc.classList.remove('hidden');
+      } else {
+        rc.classList.add('hidden');
+      }
+    } else {
+      rc.classList.add('hidden');
+    }
   },
 
   /* ── Screen flow ── */
@@ -787,7 +797,6 @@ const app = {
     this._show('start-screen');
     document.getElementById('welcome-panel').classList.add('hidden');
     document.getElementById('login-panel').classList.remove('hidden');
-    this.checkSavedProgress();
   },
 
   /* ── Resume / discard ── */
@@ -820,10 +829,18 @@ const app = {
     const val=document.getElementById('name-select').value;
     const pinSec=document.getElementById('pin-section'), guestSec=document.getElementById('guest-name-section');
     document.getElementById('login-error').textContent='';
-    if (!val){ pinSec.classList.add('hidden'); return; }
+    if (!val){ pinSec.classList.add('hidden'); document.getElementById('resume-container').classList.add('hidden'); return; }
     pinSec.classList.remove('hidden');
     if (val.startsWith('GUEST:')){ guestSec.classList.remove('hidden'); document.getElementById('pin-label').textContent='🔒 Enter guest code:'; }
     else { guestSec.classList.add('hidden'); document.getElementById('pin-label').textContent='🔒 Enter your student number:'; }
+    // Show resume only if saved session belongs to this student
+    const saved = localStorage.getItem(LOCAL_KEY);
+    const rc = document.getElementById('resume-container');
+    if (saved) {
+      const data = JSON.parse(saved);
+      const selectedName = val.startsWith('GUEST:') ? null : val;
+      rc.classList.toggle('hidden', data.studentName !== selectedName);
+    } else { rc.classList.add('hidden'); }
     setTimeout(()=>document.getElementById('student-pin').focus(),80);
   },
 
