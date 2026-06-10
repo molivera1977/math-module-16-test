@@ -872,8 +872,7 @@ const app = {
     if (!this._reviewMode) return;
     const qObj=this.currentTest[this.currentIndex];
     document.querySelectorAll('.answer-btn').forEach(b => {
-      const txt=(b.querySelector('span')||b).textContent.replace(/\s+/g,' ').trim();
-      if (txt===qObj.answer.replace(/\s+/g,' ').trim()) this.selectAnswer(qObj.answer, b);
+      if (b.dataset.answer === qObj.answer) this.selectAnswer(qObj.answer, b);
     });
     setTimeout(()=>{ if(this._reviewMode) this.submitAnswer(); }, 800);
   },
@@ -940,7 +939,8 @@ const app = {
     fb.className='feedback-box'; fb.style.display='none'; fb.innerHTML='';
     document.getElementById('soak-timer-bar').classList.add('hidden');
     document.getElementById('submit-btn').disabled=true;
-    document.getElementById('submit-btn').classList.remove('hidden');
+    if (this._reviewMode) { document.getElementById('submit-btn').classList.add('hidden'); }
+    else { document.getElementById('submit-btn').classList.remove('hidden'); }
     document.getElementById('next-btn').classList.add('hidden');
     document.getElementById('next-btn').disabled=true;
 
@@ -960,6 +960,7 @@ const app = {
         u.onend=()=>{ textSpan.querySelectorAll('.wrd.hl').forEach(el=>el.classList.remove('hl')); if(activeSpeakBtn===speakBtn){speakBtn.textContent='🔊';activeSpeakBtn=null;} };
         window.speechSynthesis.speak(u);
       };
+      btn.dataset.answer = opt;
       btn.appendChild(speakBtn); btn.appendChild(textSpan);
       btn.onclick=e=>{ if(e.target===speakBtn||e.target.closest('.speak-mini')===speakBtn)return; this.selectAnswer(opt,btn); };
       answersDiv.appendChild(btn);
