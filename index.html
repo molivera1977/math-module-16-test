@@ -371,6 +371,11 @@
       <button onclick="document.getElementById('tab-warning-banner').classList.add('hidden')">✕</button>
     </div>
 
+    <div id="review-mode-banner" class="hidden" style="background:#fff3cd;border:2px solid #ffc107;border-radius:10px;padding:7px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;font-size:0.82rem;font-weight:bold;color:#856404;">
+      <span id="review-mode-label">🔍 Teacher Review Mode</span>
+      <button onclick="app.exitReviewMode()" style="background:none;border:1px solid #ffc107;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;font-weight:bold;color:#856404;font-size:0.78rem;">✕ Exit</button>
+    </div>
+
     <span class="part-badge">Part 1 — Multiple Choice</span>
 
     <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
@@ -709,6 +714,8 @@ const app = {
   _readTimer:     null,
   _readLockDone:  false,
   _soakTimer:     null,
+  _reviewMode:    false,
+  _reviewAutoRun: false,
 
   /* ── Init ── */
   init() { this.checkSavedProgress(); },
@@ -802,6 +809,13 @@ const app = {
     tabSwitchCount       = 0;
     this._saveProgress();
     this._show('quiz-screen');
+    const banner = document.getElementById('review-mode-banner');
+    if (this._reviewMode) {
+      banner.classList.remove('hidden');
+      document.getElementById('review-mode-label').textContent = this._reviewAutoRun ? '🔍 Teacher Review Mode — auto-run' : '🔍 Teacher Review Mode — manual';
+    } else {
+      banner.classList.add('hidden');
+    }
     this._startTimer();
     this.showQuestion();
     stopConfetti();
@@ -924,7 +938,14 @@ const app = {
       answersDiv.appendChild(btn);
     });
 
-    this._startReadLock();
+    if (this._reviewMode) {
+      this._readLockDone = true;
+      document.getElementById('reading-timer-bar').classList.add('hidden');
+      if (this._reviewAutoRun) setTimeout(() => this._autoAnswer(), 1200);
+      else document.getElementById('submit-btn').disabled = false;
+    } else {
+      this._startReadLock();
+    }
   },
 
   /* ── Reading lock (8s) ── */
@@ -991,8 +1012,15 @@ const app = {
     }
 
     this._updateStreak();
-    this._saveProgress();
-    this._startSoakTimer();
+    if (!this._reviewMode) this._saveProgress();
+    if (this._reviewMode) {
+      const next = document.getElementById('next-btn');
+      next.classList.remove('hidden');
+      next.disabled = false;
+      if (this._reviewAutoRun) setTimeout(() => this.nextQuestion(), 1800);
+    } else {
+      this._startSoakTimer();
+    }
   },
 
   /* ── Streak ── */
@@ -1051,15 +1079,18 @@ const app = {
   /* ── End MC → Part 2 ── */
   _endMCTest() {
     this._stopTimer();
-    localStorage.removeItem(LOCAL_KEY);
-    this.checkSavedProgress();
+    if (!this._reviewMode) {
+      localStorage.removeItem(LOCAL_KEY);
+      this.checkSavedProgress();
+    }
 
     const pct    = Math.round((this.score / this.currentTest.length) * 100);
     const letter = calcLetter(pct);
     this._mcResult = { score: this.score, total: this.currentTest.length, pct, letter };
 
-    submitMCToSheet(this.score, this.currentTest.length, pct, letter, this.timerSeconds);
+    if (!this._reviewMode) submitMCToSheet(this.score, this.currentTest.length, pct, letter, this.timerSeconds);
 
+    if (this._reviewMode) { this.showEndScreen(); return; }
     this._show('written-screen');
     this._buildWrittenScreen();
     this._startWrittenTimer();
@@ -1211,10 +1242,39 @@ const app = {
   },
 
   promptTeacherAccess() {
-    const pin = prompt('Enter Teacher PIN:');
+    const pin = prompt('Enter Teacher PIN to access Review Mode:');
     if (pin !== '9377') { if (pin !== null) alert('Incorrect PIN.'); return; }
     this.studentName = 'Mr. O (Teacher)';
+    const mode = prompt('Choose review mode:\n1 — Manual (tap Next each question)\n2 — Auto-run (fully automatic)\n\nEnter 1 or 2:');
+    if (mode !== '1' && mode !== '2') { alert('Invalid choice.'); return; }
+    this._reviewMode    = true;
+    this._reviewAutoRun = (mode === '2');
+    localStorage.removeItem(LOCAL_KEY);
     this.startTest();
+  },
+
+  exitReviewMode() {
+    this._reviewMode    = false;
+    this._reviewAutoRun = false;
+    this._stopTimer();
+    stopActiveSpeech();
+    document.getElementById('review-mode-banner').classList.add('hidden');
+    this._show('start-screen');
+    document.getElementById('welcome-panel').classList.remove('hidden');
+    document.getElementById('login-panel').classList.add('hidden');
+  },
+
+  _autoAnswer() {
+    if (!this._reviewMode) return;
+    const qObj = this.currentTest[this.currentIndex];
+    const btns = document.querySelectorAll('.answer-btn');
+    btns.forEach(b => {
+      const txt = b.querySelector('span') ? b.querySelector('span').textContent.replace(/\s+/g,' ').trim() : '';
+      if (txt === qObj.answer.replace(/\s+/g,' ').trim()) {
+        this.selectAnswer(qObj.answer, b);
+      }
+    });
+    setTimeout(() => { if (this._reviewMode) this.submitAnswer(); }, 800);
   },
 
   restart() {
@@ -1230,6 +1290,9 @@ const app = {
     document.getElementById('guest-name-section').classList.add('hidden');
     document.getElementById('login-error').textContent = '';
     document.getElementById('streak-bar').style.display = 'none';
+    document.getElementById('review-mode-banner').classList.add('hidden');
+    this._reviewMode    = false;
+    this._reviewAutoRun = false;
     this.checkSavedProgress();
   },
 
