@@ -861,7 +861,22 @@ const app = {
       if (student&&student.id===pin){ matched=true; displayName=selVal; }
       else { errEl.textContent='❌ Incorrect student number. Try again.'; return; }
     }
-    if (matched){ this.studentName=displayName; document.getElementById('student-pin').value=''; errEl.textContent=''; this.startTest(); }
+    if (matched){
+      this.studentName=displayName;
+      document.getElementById('student-pin').value='';
+      errEl.textContent='';
+      // If a saved session exists for this student, they must resume — no bypass
+      const saved = localStorage.getItem(LOCAL_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.studentName === this.studentName) {
+          document.getElementById('resume-container').classList.remove('hidden');
+          document.getElementById('pin-section').classList.add('hidden');
+          return;
+        }
+      }
+      this.startTest();
+    }
   },
 
   /* ── Teacher Access ── */
