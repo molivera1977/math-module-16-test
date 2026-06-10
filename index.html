@@ -284,6 +284,13 @@
     </div>
 
     <div id="login-panel" class="hidden">
+      <div id="completed-container" class="hidden" style="background:#fff0f0;border:2px solid #e0a0a0;border-radius:16px;padding:20px 24px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:8px;">🔒</div>
+        <p style="margin:0 0 6px;font-weight:800;color:#a00000;font-size:1.1rem;">Test Already Completed</p>
+        <p style="margin:0 0 16px;color:#555;font-size:0.9rem;">You have already submitted this test. A retake requires your teacher's permission.</p>
+        <button onclick="app.requestRetake()" style="background:none;border:none;color:#c0392b;font-size:0.82rem;cursor:pointer;font-family:inherit;text-decoration:underline;padding:4px;">🔑 Request Retake (Teacher PIN required)</button>
+      </div>
+
       <div id="resume-container" class="hidden">
         <div style="font-size:2.5rem;margin-bottom:8px;">↩️</div>
         <p style="margin:0 0 6px;font-weight:800;color:#a04000;font-size:1.1rem;">Welcome back!</p>
@@ -521,7 +528,8 @@
 ══════════════════════════════════════════════════ */
 const TEACHER_PIN = '9377';
 const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbzv8CWv1yyi8NeH04now9UxVL4IZm5yMqqsEGMcgGdrcAOWVB-aSp5siTvSSJXIUpzFMA/exec';
-const LOCAL_KEY   = 'mathModule16Test_v1';
+const LOCAL_KEY           = 'mathModule16Test_v1';
+const LOCAL_COMPLETED_KEY = 'mathModule16Test_completed_v1';
 
 const SESSION_ID = (() => {
   const k = 'm16t_sid';
@@ -836,14 +844,24 @@ const app = {
     });
   },
 
+  requestRetake() {
+    this._openPinModal('Allow Retake', 'Enter Teacher PIN to allow this student to retake the test.', () => {
+      localStorage.removeItem(LOCAL_COMPLETED_KEY);
+      document.getElementById('completed-container').classList.add('hidden');
+      document.getElementById('pin-section').classList.remove('hidden');
+      setTimeout(()=>document.getElementById('student-pin').focus(), 80);
+    });
+  },
+
   /* ── Login ── */
   onNameSelect() {
     const val=document.getElementById('name-select').value;
     const pinSec=document.getElementById('pin-section'), guestSec=document.getElementById('guest-name-section');
     document.getElementById('login-error').textContent='';
-    if (!val){ pinSec.classList.add('hidden'); document.getElementById('resume-container').classList.add('hidden'); return; }
+    if (!val){ pinSec.classList.add('hidden'); document.getElementById('resume-container').classList.add('hidden'); document.getElementById('completed-container').classList.add('hidden'); return; }
     pinSec.classList.remove('hidden');
     document.getElementById('resume-container').classList.add('hidden');
+    document.getElementById('completed-container').classList.add('hidden');
     if (val.startsWith('GUEST:')){ guestSec.classList.remove('hidden'); document.getElementById('pin-label').textContent='🔒 Enter guest code:'; }
     else { guestSec.classList.add('hidden'); document.getElementById('pin-label').textContent='🔒 Enter your student number:'; }
     setTimeout(()=>document.getElementById('student-pin').focus(),80);
@@ -870,6 +888,13 @@ const app = {
       this.studentName=displayName;
       document.getElementById('student-pin').value='';
       errEl.textContent='';
+      // Block retake if test already completed — requires Teacher PIN
+      const completed = localStorage.getItem(LOCAL_COMPLETED_KEY);
+      if (completed === this.studentName) {
+        document.getElementById('completed-container').classList.remove('hidden');
+        document.getElementById('pin-section').classList.add('hidden');
+        return;
+      }
       // If a saved session exists for this student, they must resume — no bypass
       const saved = localStorage.getItem(LOCAL_KEY);
       if (saved) {
@@ -1089,7 +1114,9 @@ const app = {
   /* ── End MC ── */
   _endMCTest() {
     this._stopTimer();
-    localStorage.removeItem(LOCAL_KEY); this.checkSavedProgress();
+    localStorage.removeItem(LOCAL_KEY);
+    localStorage.setItem(LOCAL_COMPLETED_KEY, this.studentName);
+    this.checkSavedProgress();
     const pct=Math.round((this.score/this.currentTest.length)*100), letter=calcLetter(pct);
     this._mcResult={score:this.score, total:this.currentTest.length, pct, letter};
     submitMCToSheet(this.score, this.currentTest.length, pct, letter, this.timerSeconds);
