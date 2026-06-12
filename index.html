@@ -674,8 +674,9 @@ function speakWrittenPrompt(btn, promptId) {
   if (!p.querySelector('.wrd')) p.innerHTML = wrapWords(p.innerHTML);
   const spans = Array.from(p.querySelectorAll('.wrd'));
   if (!spans.length) return;
+  const speechText = btn.dataset.speech || spans.map(s => s.textContent).join(' ');
   activeSpeakBtn = btn; btn.textContent = '⏹';
-  const u = new SpeechSynthesisUtterance(spans.map(s => s.textContent).join(' '));
+  const u = new SpeechSynthesisUtterance(speechText);
   u.lang = 'en-US'; u.rate = 0.9; let hlIdx = 0;
   u.onboundary = e => {
     if (e.name !== 'word') return;
@@ -1165,8 +1166,9 @@ const app = {
     container.innerHTML=''; container.classList.remove('hidden');
     WRITTEN_PROMPTS.forEach(p=>{
       const card=document.createElement('div'); card.className='written-prompt-card';
-      const promptHtml=p.prompt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-      card.innerHTML=`<div style="display:flex;align-items:center;gap:8px;"><button class="speak-btn" onclick="speakWrittenPrompt(this,'${p.id}')">🔊</button><div class="written-prompt-label">${p.id}</div></div><div class="written-prompt-type">${p.type}</div><div class="written-prompt-text" id="prompt-text-${p.id}">${promptHtml}</div><div class="written-guidance">💡 ${p.guidance}</div><textarea class="written-textarea" id="textarea-${p.id}" placeholder="Write your response here…" oninput="app._updateWordCount('${p.id}',this); app._autosaveDraft()"></textarea><div class="word-count-row">Words: <span class="word-count-val" id="wc-${p.id}">0</span><span style="color:#aaa;font-size:0.8rem;"> / 10 minimum</span></div>`;
+      const promptHtml=formatMathText(p.prompt).replace(/\n/g,'<br>');
+      const promptSpeech=toSpoken(p.prompt).replace(/\n+/g,' ').replace(/•/g,'').replace(/\s+/g,' ').trim();
+      card.innerHTML=`<div style="display:flex;align-items:center;gap:8px;"><button class="speak-btn" data-speech="${promptSpeech.replace(/"/g,'&quot;')}" onclick="speakWrittenPrompt(this,'${p.id}')">🔊</button><div class="written-prompt-label">${p.id}</div></div><div class="written-prompt-type">${p.type}</div><div class="written-prompt-text" id="prompt-text-${p.id}">${promptHtml}</div><div class="written-guidance">💡 ${p.guidance}</div><textarea class="written-textarea" id="textarea-${p.id}" placeholder="Write your response here…" oninput="app._updateWordCount('${p.id}',this); app._autosaveDraft()"></textarea><div class="word-count-row">Words: <span class="word-count-val" id="wc-${p.id}">0</span><span style="color:#aaa;font-size:0.8rem;"> / 10 minimum</span></div>`;
       container.appendChild(card);
     });
     document.getElementById('written-success-panel').classList.add('hidden');
